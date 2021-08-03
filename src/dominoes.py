@@ -48,15 +48,15 @@ class DominoesGameBase:
 
     def reset(self):
         self.zero_axes()
-        self.__spinner_locations = [0, 0]
+        self.__spinner_locations = [-1, -1]
 
     def __init__(self):
         self.__game_axes = []
         self.zero_axes()
-        self.__spinner_locations = [0, 0]
+        self.__spinner_locations = [-1, -1]
 
     def has_spinner(self):
-        return self.__spinner_locations != [0, 0]
+        return self.__spinner_locations != [-1, -1]
 
     def update_spinner_locations(self):
         for first_axis_element in range(self.axis_length):
