@@ -10,19 +10,19 @@ available_tiles = ((0, 0),
 
 class DominoTile:
     def __init__(self, tile, is_spinner, placed_by_player):
-        self.data = [available_tiles[tile][0], available_tiles[tile][1], is_spinner, placed_by_player]
+        self.__data = [available_tiles[tile][0], available_tiles[tile][1], is_spinner, placed_by_player]
 
     def face_values(self):
-        return self.data[0], self.data[1]
+        return self.__data[0], self.__data[1]
 
     def is_spinner(self):
-        return self.data[2]
+        return self.__data[2]
 
     def placed_by_player(self):
-        return self.data[3]
+        return self.__data[3]
 
     def to_list(self):
-        return self.data
+        return self.__data
 
 
 class DominoesGameBase:
@@ -32,55 +32,59 @@ class DominoesGameBase:
     first_position = int(max_element / 2)
 
     def zero_axis(self, axis):
-        self.game_axes[axis] = []
+        self.__game_axes[axis] = []
         empty_axis = []
         for axis_element in range(self.axis_length):
             empty_axis.append(self.empty_tile)
-        self.game_axes[axis] = empty_axis
+        self.__game_axes[axis] = empty_axis
 
     def zero_axes(self):
-        self.game_axes = []
+        self.__game_axes = []
         empty_axis = []
         for axis_element in range(self.axis_length):
             empty_axis.append(self.empty_tile)
         # make a copy of the axis array so that the axes array doesn't contain two references to the same axis array
-        self.game_axes = [empty_axis, empty_axis.copy()]
+        self.__game_axes = [empty_axis, empty_axis.copy()]
+
+    def reset(self):
+        self.zero_axes()
+        self.__spinner_locations = [0, 0]
 
     def __init__(self):
-        self.game_axes = []
+        self.__game_axes = []
         self.zero_axes()
-        self.spinner_locations = [0, 0]
+        self.__spinner_locations = [0, 0]
 
     def has_spinner(self):
-        return self.spinner_locations != [0, 0]
+        return self.__spinner_locations != [0, 0]
 
     def update_spinner_locations(self):
         for first_axis_element in range(self.axis_length):
-            if self.game_axes[0][first_axis_element][2] == 1:
-                self.spinner_locations[0] = first_axis_element
+            if self.__game_axes[0][first_axis_element][2] == 1:
+                self.__spinner_locations[0] = first_axis_element
                 break
         for second_axis_element in range(self.axis_length):
-            if self.game_axes[1][second_axis_element][2] == 1:
-                self.spinner_locations[1] = second_axis_element
+            if self.__game_axes[1][second_axis_element][2] == 1:
+                self.__spinner_locations[1] = second_axis_element
                 break
 
     def axis_needs_recenter(self, axis):
-        return self.game_axes[axis][0] != self.empty_tile or \
-               self.game_axes[axis][self.axis_length - 1] != self.empty_tile
+        return self.__game_axes[axis][0] != self.empty_tile or \
+               self.__game_axes[axis][self.axis_length - 1] != self.empty_tile
     
     def recenter_axis(self, axis):
         old_start_position = 0
         for old_axis_element in range(self.axis_length):
-            if self.game_axes[axis][old_axis_element] != self.empty_tile:
+            if self.__game_axes[axis][old_axis_element] != self.empty_tile:
                 old_start_position = old_axis_element
                 break
-        empty_tiles = self.game_axes[axis].count(self.empty_tile)
+        empty_tiles = self.__game_axes[axis].count(self.empty_tile)
         new_start_position = int(empty_tiles / 2)
 
-        axis_copy = self.game_axes[axis]
+        axis_copy = self.__game_axes[axis]
         self.zero_axis(axis)
         for new_axis_element in range(self.axis_length - empty_tiles):
-            self.game_axes[axis][new_start_position + new_axis_element] = \
+            self.__game_axes[axis][new_start_position + new_axis_element] = \
                 axis_copy[old_start_position + new_axis_element]
 
         self.update_spinner_locations()
@@ -88,37 +92,38 @@ class DominoesGameBase:
     def insert_tile(self, domino_tile, axis, location):
         tile_list = domino_tile.to_list()
         if domino_tile.is_spinner() == 0:
-            self.game_axes[axis][location] = tile_list
+            self.__game_axes[axis][location] = tile_list
         elif not self.has_spinner():
-            self.game_axes[axis][location] = tile_list
-            self.game_axes[1][self.first_position] = tile_list
-            self.spinner_locations = [location, self.first_position]
+            self.__game_axes[axis][location] = tile_list
+            self.__game_axes[1][self.first_position] = tile_list
+            self.__spinner_locations = [location, self.first_position]
 
     def print_game(self):
         for y_var in range(self.axis_length):
             print_str = ''
             for x_var in range(self.axis_length):
                 if self.has_spinner():
-                    if (x_var != self.spinner_locations[0] and y_var != self.spinner_locations[1]) or \
-                            self.game_axes[0][x_var] == self.empty_tile or self.game_axes[1][y_var] == self.empty_tile:
+                    if (x_var != self.__spinner_locations[0] and y_var != self.__spinner_locations[1]) or \
+                            self.__game_axes[0][x_var] == self.empty_tile or \
+                            self.__game_axes[1][y_var] == self.empty_tile:
                         print_str += '-----'
                     else:
-                        if y_var == self.spinner_locations[1]:
-                            print_str += '[' + str(self.game_axes[0][x_var][0]) + '|' + \
-                                         str(self.game_axes[0][x_var][1]) + ']'
+                        if y_var == self.__spinner_locations[1]:
+                            print_str += '[' + str(self.__game_axes[0][x_var][0]) + '|' + \
+                                         str(self.__game_axes[0][x_var][1]) + ']'
                         else:
-                            print_str += '[' + str(self.game_axes[1][y_var][0]) + '|' + \
-                                         str(self.game_axes[1][y_var][1]) + ']'
+                            print_str += '[' + str(self.__game_axes[1][y_var][0]) + '|' + \
+                                         str(self.__game_axes[1][y_var][1]) + ']'
                 else:
-                    if y_var != self.first_position or self.game_axes[0][x_var] == self.empty_tile:
+                    if y_var != self.first_position or self.__game_axes[0][x_var] == self.empty_tile:
                         print_str += '-----'
                     else:
-                        print_str += '[' + str(self.game_axes[0][x_var][0]) + '|' + \
-                                     str(self.game_axes[0][x_var][1]) + ']'
+                        print_str += '[' + str(self.__game_axes[0][x_var][0]) + '|' + \
+                                     str(self.__game_axes[0][x_var][1]) + ']'
             print(print_str)
 
     def to_list(self):
-        return self.game_axes
+        return self.__game_axes
 
 
 test_game = DominoesGameBase()
