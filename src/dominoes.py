@@ -45,6 +45,7 @@ class DominoesGameBase:
             empty_axis.append(self.empty_tile)
         # make a copy of the axis array so that the axes array doesn't contain two references to the same axis array
         self.__game_axes = [empty_axis, empty_axis.copy()]
+        self.__axes_empty = True
 
     def reset(self):
         self.zero_axes()
@@ -52,6 +53,7 @@ class DominoesGameBase:
 
     def __init__(self):
         self.__game_axes = []
+        self.__axes_empty = True
         self.zero_axes()
         self.__spinner_locations = [-1, -1]
 
@@ -71,7 +73,7 @@ class DominoesGameBase:
     def axis_needs_recenter(self, axis):
         return self.__game_axes[axis][0] != self.empty_tile or \
                self.__game_axes[axis][self.axis_length - 1] != self.empty_tile
-    
+
     def recenter_axis(self, axis):
         old_start_position = 0
         for old_axis_element in range(self.axis_length):
@@ -91,12 +93,37 @@ class DominoesGameBase:
 
     def insert_tile(self, domino_tile, axis, location):
         tile_list = domino_tile.to_list()
+
         if domino_tile.is_spinner() == 0:
             self.__game_axes[axis][location] = tile_list
         elif not self.has_spinner():
             self.__game_axes[axis][location] = tile_list
             self.__game_axes[1][self.first_position] = tile_list
             self.__spinner_locations = [location, self.first_position]
+        else:
+            return False
+
+        self.__axes_empty = False
+        return True
+
+    def place_tile_on_axis(self, domino_tile, axis, at_end):
+        tile_list = domino_tile.to_list()
+        last_element = self.max_element if at_end else 0
+        increment = 1 if at_end else -1
+        prev_element = self.first_position
+        for axis_element in range(self.first_position, last_element, increment):
+            if self.__game_axes[axis][axis_element] == self.empty_tile:
+                if self.__game_axes[axis][prev_element][0] == tile_list[0] or \
+                        self.__game_axes[axis][prev_element][0] == tile_list[1] or \
+                        self.__game_axes[axis][prev_element][1] == tile_list[0] or \
+                        self.__game_axes[axis][prev_element][1] == tile_list[1] or \
+                        self.__axes_empty:
+                    return self.insert_tile(domino_tile, axis, axis_element)
+                else:
+                    break
+            prev_element = axis_element
+
+        return False
 
     def print_game(self):
         for y_var in range(self.axis_length):
@@ -127,11 +154,11 @@ class DominoesGameBase:
 
 
 test_game = DominoesGameBase()
-test_game.insert_tile(DominoTile(1, 0, 2), 0, 5)
-test_game.insert_tile(DominoTile(2, 0, 1), 0, 6)
-test_game.insert_tile(DominoTile(3, 1, 2), 0, 7)
-test_game.insert_tile(DominoTile(4, 0, 1), 1, 12)
-test_game.insert_tile(DominoTile(5, 0, 2), 1, 14)
+print(test_game.place_tile_on_axis(DominoTile(1, 0, 2), 0, True))
+print(test_game.place_tile_on_axis(DominoTile(2, 0, 1), 0, True))
+print(test_game.place_tile_on_axis(DominoTile(4, 1, 2), 0, True))
+print(test_game.place_tile_on_axis(DominoTile(3, 0, 1), 1, True))
+print(test_game.place_tile_on_axis(DominoTile(5, 0, 2), 1, False))
 
 test_game.recenter_axis(0)
 
